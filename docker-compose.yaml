@@ -1,0 +1,24 @@
+services:
+  app:
+    build: .
+    container_name: drifty-demo-app
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "rust", "service": "drifty-demo"}]'
+    depends_on:
+      - datadog-agent
+
+  datadog-agent:
+    image: datadog/agent:latest
+    container_name: datadog-agent
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE_LOGS=name:datadog-agent
+      - DD_SITE=datadoghq.com
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - datadog-run:/opt/datadog-agent/run:rw
+
+volumes:
+  datadog-run:
