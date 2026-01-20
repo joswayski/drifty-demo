@@ -1,0 +1,42 @@
+name: Drifty Sync Test
+
+on:
+  workflow_dispatch: # Manual trigger only for now
+
+env:
+  DRIFTY_PROVIDERS: "datadog"
+  DRIFTY_AI_URL: "https://openrouter.ai/api/v1"
+  DRIFTY_AI_EMBEDDING_MODEL: "qwen/qwen3-embedding-8b"
+  DRIFTY_AI_EMBEDDING_DIMENSIONS: "1536"
+  DRIFTY_AI_WORKER_MODEL: "anthropic/claude-sonnet-4.5"
+  DRIFTY_BUCKET_NAME: "drifty-embeddings"
+  DRIFTY_SYNC_CACHE_TTL: "2592000"
+
+jobs:
+  sync:
+    name: Sync Monitors
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Install drifty
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/joswayski/drifty/releases/latest/download/drifty-installer.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Run drifty sync
+        env:
+          DRIFTY_PROVIDER_DATADOG_API_KEY: ${{ secrets.DRIFTY_PROVIDER_DATADOG_API_KEY }}
+          DRIFTY_PROVIDER_DATADOG_APP_KEY: ${{ secrets.DRIFTY_PROVIDER_DATADOG_APP_KEY }}
+          DRIFTY_AI_KEY: ${{ secrets.DRIFTY_AI_KEY }}
+        run: |
+          drifty sync
