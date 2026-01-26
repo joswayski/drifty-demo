@@ -37,7 +37,7 @@ jobs:
 
             - name: Build drifty from PR branch
               run: |
-                  git clone --depth 1 --branch pr https://github.com/joswayski/drifty.git /tmp/drifty
+                  git clone --depth 1 --branch clntd https://github.com/joswayski/drifty.git /tmp/drifty
                   cd /tmp/drifty
                   cargo build --release
                   cp target/release/drifty /usr/local/bin/drifty
