@@ -1,0 +1,52 @@
+name: Drifty Check (Beta)
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+
+env:
+    DRIFTY_PROVIDERS: "datadog"
+    DRIFTY_AI_URL: "https://openrouter.ai/api/v1"
+    DRIFTY_AI_EMBEDDING_MODEL: "qwen/qwen3-embedding-8b"
+    DRIFTY_AI_EMBEDDING_DIMENSIONS: "1536"
+    DRIFTY_AI_WORKER_MODEL: "anthropic/claude-sonnet-4.5"
+    DRIFTY_BUCKET_NAME: "drifty-embeddings"
+    DRIFTY_THRESHOLD: "0.15"
+
+jobs:
+    check:
+        name: Check PR for Monitor Drift
+        runs-on: ubuntu-latest
+        permissions:
+            id-token: write # Required for OIDC
+            contents: read
+            pull-requests: write # Required for posting comments
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Configure AWS credentials (OIDC)
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsDriftyRole
+                  aws-region: us-east-1
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@stable
+
+            - name: Build drifty from PR branch
+              run: |
+                  git clone --depth 1 --branch pr https://github.com/joswayski/drifty.git /tmp/drifty
+                  cd /tmp/drifty
+                  cargo build --release
+                  cp target/release/drifty /usr/local/bin/drifty
+
+            - name: Run drifty check
+              env:
+                  DRIFTY_PROVIDER_DATADOG_API_KEY: ${{ secrets.DRIFTY_PROVIDER_DATADOG_API_KEY }}
+                  DRIFTY_PROVIDER_DATADOG_APP_KEY: ${{ secrets.DRIFTY_PROVIDER_DATADOG_APP_KEY }}
+                  DRIFTY_AI_KEY: ${{ secrets.DRIFTY_AI_KEY }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  drifty check
