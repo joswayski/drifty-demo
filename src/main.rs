@@ -5,7 +5,7 @@ use sjl::{Logger, error, info};
 const LOGS: [&str; 3] = [
     "User created successfully",
     "Order placed",
-    "Payment processed",
+    "Payment processed succesfully",
 ];
 
 const LOG_FREQUENCY: Duration = Duration::from_secs(5);
