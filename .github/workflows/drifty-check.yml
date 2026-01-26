@@ -11,7 +11,7 @@ env:
     DRIFTY_AI_EMBEDDING_DIMENSIONS: "1536"
     DRIFTY_AI_WORKER_MODEL: "anthropic/claude-sonnet-4.5"
     DRIFTY_BUCKET_NAME: "drifty-embeddings"
-    DRIFTY_THRESHOLD: "0.15"
+    DRIFTY_THRESHOLD: "0.30"
 
 jobs:
     check:
